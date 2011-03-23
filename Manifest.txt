@@ -1,0 +1,10 @@
+.autotest
+History.txt
+Manifest.txt
+README.rdoc
+Rakefile
+ext/pasteboard/extconf.rb
+ext/pasteboard/pasteboard.c
+lib/pasteboard.rb
+sample/image.rb
+test/test_pasteboard.rb

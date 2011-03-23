@@ -1,0 +1,7 @@
+*.rbc
+*.swp
+/TAGS
+/doc
+/pkg
+/tmp
+/lib/pasteboard/pasteboard.bundle
