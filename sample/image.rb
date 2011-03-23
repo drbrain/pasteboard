@@ -101,7 +101,7 @@ pb = Pasteboard.new
 item = [
   ['public.tiff',            troll_tiff]
   ['public.url',             troll_url]
-  ['public.url-name',        troll_url]
+  ['public.url-name',        'trollface']
   ['public.utf8-plain-text', troll_url]
 ]
 
