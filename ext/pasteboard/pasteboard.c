@@ -3,18 +3,16 @@
 
 static VALUE ePBError;
 
+static void pb_free(void *ptr) {
+  if (ptr)
+    CFRelease((PasteboardRef)ptr);
+}
+
 static VALUE
 pb_alloc(VALUE klass) {
   VALUE obj;
-  OSStatus err = noErr;
-  PasteboardRef clipboard;
 
-  err = PasteboardCreate(kPasteboardClipboard, &clipboard);
-
-  if (err != noErr)
-    rb_raise(ePBError, "error initializing the clipboard");
-
-  obj = Data_Wrap_Struct(klass, NULL, NULL, (void*)clipboard);
+  obj = Data_Wrap_Struct(klass, NULL, pb_free, NULL);
 
   return obj;
 }
@@ -62,6 +60,46 @@ pb_get_pasteboard(VALUE obj) {
 
 /*
  * call-seq:
+ *   Pasteboard.new type = Pasteboard::CLIPBOARD
+ *
+ * Creates a new pasteboard of the specified +type+.
+ */
+static VALUE
+pb_init(int argc, VALUE* argv, VALUE self) {
+  OSStatus err = noErr;
+  PasteboardRef pasteboard;
+  CFStringRef pasteboard_type = NULL;
+  VALUE type = Qnil;
+
+  if (argc == 0) {
+    pasteboard_type = kPasteboardClipboard;
+  } else {
+    rb_scan_args(argc, argv, "01", &type);
+  }
+
+  if (!NIL_P(type)) {
+    pasteboard_type = CFStringCreateWithCString(NULL,
+        StringValueCStr(type),
+        kCFStringEncodingUTF8);
+
+    if (pasteboard_type == NULL)
+      rb_raise(ePBError, "unable to allocate memory for pasteboard type");
+  }
+
+  err = PasteboardCreate(pasteboard_type, &pasteboard);
+
+  if (pasteboard_type)
+    CFRelease(pasteboard_type);
+
+  pb_error(err);
+
+  DATA_PTR(self) = (void *)pasteboard;
+
+  return self;
+}
+
+/*
+ * call-seq:
  *   pasteboard.clear
  *
  * Clears the contents of the pasteboard.
@@ -69,11 +107,11 @@ pb_get_pasteboard(VALUE obj) {
 static VALUE
 pb_clear(VALUE self) {
   OSStatus err = noErr;
-  PasteboardRef clipboard;
+  PasteboardRef pasteboard;
 
-  clipboard = pb_get_pasteboard(self);
+  pasteboard = pb_get_pasteboard(self);
 
-  err = PasteboardClear(clipboard);
+  err = PasteboardClear(pasteboard);
 
   pb_error(err);
 
@@ -91,11 +129,11 @@ static VALUE
 pb_sync(VALUE self) {
   OSStatus err = noErr;
   PasteboardSyncFlags flags;
-  PasteboardRef clipboard;
+  PasteboardRef pasteboard;
 
-  clipboard = pb_get_pasteboard(self);
+  pasteboard = pb_get_pasteboard(self);
 
-  flags = PasteboardSynchronize(clipboard);
+  flags = PasteboardSynchronize(pasteboard);
 
   if (flags & kPasteboardModified)
     rb_raise(ePBError, "pasteboard sync error");
@@ -111,17 +149,17 @@ pb_sync(VALUE self) {
  *   pasteboard.put_item_flavor id, flavor, data
  *
  * Puts an item into the pasteboard.  +id+ is used to identify an item,
- * +flavor+ is the item's type and +data+ is the clipboard data for the item.
+ * +flavor+ is the item's type and +data+ is the pasteboard data for the item.
  */
 
 static VALUE
 pb_put_item_flavor(VALUE self, VALUE id, VALUE flavor, VALUE data) {
   OSStatus err = noErr;
-  PasteboardRef clipboard;
-  CFDataRef clipboard_data = NULL;
+  PasteboardRef pasteboard;
+  CFDataRef pasteboard_data = NULL;
   CFStringRef item_flavor = NULL;
 
-  clipboard = pb_get_pasteboard(self);
+  pasteboard = pb_get_pasteboard(self);
 
   item_flavor = CFStringCreateWithCString(NULL,
       StringValueCStr(flavor),
@@ -130,22 +168,22 @@ pb_put_item_flavor(VALUE self, VALUE id, VALUE flavor, VALUE data) {
   if (item_flavor == NULL)
     rb_raise(ePBError, "unable to allocate memory for item flavor");
 
-  clipboard_data = CFDataCreate(kCFAllocatorDefault,
+  pasteboard_data = CFDataCreate(kCFAllocatorDefault,
       (UInt8 *)StringValuePtr(data), RSTRING_LEN(data));
 
-  if (clipboard_data == NULL) {
+  if (pasteboard_data == NULL) {
     CFRelease(item_flavor);
-    rb_raise(ePBError, "unable to allocate memory for clipboard data");
+    rb_raise(ePBError, "unable to allocate memory for pasteboard data");
   }
 
-  err = PasteboardPutItemFlavor(clipboard,
+  err = PasteboardPutItemFlavor(pasteboard,
       (PasteboardItemID)NUM2ULONG(id),
       item_flavor,
-      clipboard_data,
+      pasteboard_data,
       kPasteboardFlavorNoFlags);
 
   CFRelease(item_flavor);
-  CFRelease(clipboard_data);
+  CFRelease(pasteboard_data);
 
   pb_error(err);
 
@@ -158,8 +196,9 @@ Init_pasteboard(void) {
   ePBError = rb_define_class_under(cPB, "Error", rb_eRuntimeError);
 
   rb_define_alloc_func(cPB, pb_alloc);
-  rb_define_method(cPB, "clear",           pb_clear,           0);
-  rb_define_method(cPB, "put_item_flavor", pb_put_item_flavor, 3);
-  rb_define_method(cPB, "sync",            pb_sync,            0);
+  rb_define_method(cPB, "initialize",      pb_init,            -1);
+  rb_define_method(cPB, "clear",           pb_clear,            0);
+  rb_define_method(cPB, "put_item_flavor", pb_put_item_flavor,  3);
+  rb_define_method(cPB, "sync",            pb_sync,             0);
 }
 
