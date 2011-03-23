@@ -99,12 +99,12 @@ URL
 pb = Pasteboard.new
 
 item = [
-  ['public.tiff',            troll_tiff]
-  ['public.url',             troll_url]
-  ['public.url-name',        'trollface']
-  ['public.utf8-plain-text', troll_url]
+  [Pasteboard::Type::TIFF,     troll_tiff],
+  [Pasteboard::Type::URL,      troll_url],
+  [Pasteboard::Type::URL_NAME, 'trollface'],
+  [Pasteboard::Type::UTF8,      troll_url],
 ]
 
-pb.paste item
+pb.put item
 
 system 'open -a "Clipboard Viewer"'

@@ -35,9 +35,11 @@ class Pasteboard
     sync
 
     item.each do |flavor, data|
-      paste id, flavor, data
+      put_item_flavor id, flavor, data
     end
   end
+
+  autoload :Type, 'pasteboard/type'
 
 end
 
