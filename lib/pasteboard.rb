@@ -28,6 +28,10 @@ class Pasteboard
 
   UNIQUE = nil
 
+  def inspect # :nodoc:
+    '#<%s:0x%x %s>' % [self.class, object_id, name]
+  end
+
   ##
   # Clears the pasteboard and adds +item+ to the pasteboard at item +id+.
   #

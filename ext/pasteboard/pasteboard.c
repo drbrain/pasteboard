@@ -1,6 +1,8 @@
 #include <ruby.h>
 #include <Pasteboard.h>
 
+#define BUFSIZE 128
+
 static VALUE ePBError;
 
 static void pb_free(void *ptr) {
@@ -120,6 +122,39 @@ pb_clear(VALUE self) {
 
 /*
  * call-seq:
+ *   pasteboard.name
+ *
+ * The name of this pasteboard.
+ */
+static VALUE
+pb_name(VALUE self) {
+  OSStatus err = noErr;
+  PasteboardRef pasteboard;
+  CFStringRef pasteboard_name = NULL;
+  char buffer[BUFSIZE];
+  const char *name = NULL;
+
+  pasteboard = pb_get_pasteboard(self);
+
+  err = PasteboardCopyName(pasteboard, &pasteboard_name);
+
+  pb_error(err);
+
+  name = CFStringGetCStringPtr(pasteboard_name, kCFStringEncodingUTF8);
+
+  if (name == NULL)
+    if (CFStringGetCString(pasteboard_name, buffer, BUFSIZE,
+          kCFStringEncodingUTF8))
+      name = buffer;
+
+  if (name == NULL) /* HACK buffer was too small */
+      return Qnil;
+
+  return rb_str_new2(name);
+}
+
+/*
+ * call-seq:
  *   pasteboard.sync
  *
  * Synchronizes the local pasteboard to reflect the contents of the global
@@ -198,6 +233,7 @@ Init_pasteboard(void) {
   rb_define_alloc_func(cPB, pb_alloc);
   rb_define_method(cPB, "initialize",      pb_init,            -1);
   rb_define_method(cPB, "clear",           pb_clear,            0);
+  rb_define_method(cPB, "name",            pb_name,             0);
   rb_define_method(cPB, "put_item_flavor", pb_put_item_flavor,  3);
   rb_define_method(cPB, "sync",            pb_sync,             0);
 }
