@@ -122,6 +122,51 @@ pb_clear(VALUE self) {
 
 /*
  * call-seq:
+ *   pasteboard.get_item_count
+ *
+ * The number of items on the pasteboard
+ */
+static VALUE
+pb_get_item_count(VALUE self) {
+  OSStatus err = noErr;
+  PasteboardRef pasteboard;
+  ItemCount item_count = 0;
+
+  pasteboard = pb_get_pasteboard(self);
+
+  err = PasteboardGetItemCount(pasteboard, &item_count);
+
+  pb_error(err);
+
+  return ULONG2NUM(item_count);
+}
+
+/*
+ * call-seq:
+ *   pasteboard.get_item_identifier index
+ *
+ * The identifier of the pasteboard item at +index+ which is 1-based.
+ */
+static VALUE
+pb_get_item_identifier(VALUE self, VALUE index) {
+  OSStatus err = noErr;
+  PasteboardRef pasteboard;
+  CFIndex item_index = 0;
+  PasteboardItemID item_id = 0;
+
+  item_index = NUM2ULONG(index);
+
+  pasteboard = pb_get_pasteboard(self);
+
+  err = PasteboardGetItemIdentifier(pasteboard, item_index, &item_id);
+
+  pb_error(err);
+
+  return ULONG2NUM((unsigned long)item_id);
+}
+
+/*
+ * call-seq:
  *   pasteboard.name
  *
  * The name of this pasteboard.
@@ -186,7 +231,6 @@ pb_sync(VALUE self) {
  * Puts an item into the pasteboard.  +id+ is used to identify an item,
  * +flavor+ is the item's type and +data+ is the pasteboard data for the item.
  */
-
 static VALUE
 pb_put_item_flavor(VALUE self, VALUE id, VALUE flavor, VALUE data) {
   OSStatus err = noErr;
@@ -231,10 +275,12 @@ Init_pasteboard(void) {
   ePBError = rb_define_class_under(cPB, "Error", rb_eRuntimeError);
 
   rb_define_alloc_func(cPB, pb_alloc);
-  rb_define_method(cPB, "initialize",      pb_init,            -1);
-  rb_define_method(cPB, "clear",           pb_clear,            0);
-  rb_define_method(cPB, "name",            pb_name,             0);
-  rb_define_method(cPB, "put_item_flavor", pb_put_item_flavor,  3);
-  rb_define_method(cPB, "sync",            pb_sync,             0);
+  rb_define_method(cPB, "initialize",          pb_init,                -1);
+  rb_define_method(cPB, "clear",               pb_clear,                0);
+  rb_define_method(cPB, "get_item_count",      pb_get_item_count,       0);
+  rb_define_method(cPB, "get_item_identifier", pb_get_item_identifier,  1);
+  rb_define_method(cPB, "name",                pb_name,                 0);
+  rb_define_method(cPB, "put_item_flavor",     pb_put_item_flavor,      3);
+  rb_define_method(cPB, "sync",                pb_sync,                 0);
 }
 
