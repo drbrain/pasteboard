@@ -36,7 +36,7 @@ class Pasteboard
   # flavor matches nil is returned.
   #
   # An item is an Array of pairs in the order of preference which looks like
-  # this: 
+  # this:
   #
   #   [
   #     ["public.utf8-plain-text", "Pasteboard"],
