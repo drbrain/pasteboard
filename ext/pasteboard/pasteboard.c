@@ -178,6 +178,58 @@ pb_copy_item_flavors(VALUE self, VALUE identifier) {
 
 /*
  * call-seq:
+ *   pasteboard.copy_item_flavor_data identifier, flavor
+ *
+ * Retrieves pasteboard data from +identifier+ of +flavor+
+ */
+static VALUE
+pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
+  OSStatus err = noErr;
+  PasteboardRef pasteboard;
+  PasteboardItemID id = 0;
+  CFIndex data_length = 0;
+  CFDataRef flavor_data = NULL;
+  CFStringRef flavor_type = NULL;
+  UInt8 *buffer = NULL;
+  VALUE data = Qnil;
+
+  pasteboard = pb_get_pasteboard(self);
+
+  id = (PasteboardItemID)NUM2ULONG(identifier);
+
+  flavor_type = CFStringCreateWithCString(NULL,
+      StringValueCStr(flavor),
+      kCFStringEncodingUTF8);
+
+  if (flavor_type == NULL)
+    rb_raise(ePBError, "unable to allocate memory for flavor type");
+
+  err = PasteboardCopyItemFlavorData(pasteboard, id, flavor_type, &flavor_data);
+
+  pb_error(err);
+
+  data_length = CFDataGetLength(flavor_data);
+
+  buffer = (UInt8 *)malloc(data_length);
+
+  if (buffer == NULL) {
+    CFRelease(flavor_data);
+    rb_raise(ePBError, "unable to allocate memory for data");
+  }
+
+  CFDataGetBytes(flavor_data, CFRangeMake(0, data_length), buffer);
+
+  CFRelease(flavor_data);
+
+  data = rb_str_new(buffer, data_length);
+
+  free(buffer);
+
+  return data;
+}
+
+/*
+ * call-seq:
  *   pasteboard.get_item_count
  *
  * The number of items on the pasteboard
@@ -265,13 +317,7 @@ pb_sync(VALUE self) {
 
   flags = PasteboardSynchronize(pasteboard);
 
-  if (flags & kPasteboardModified)
-    rb_raise(ePBError, "pasteboard sync error");
-
-  if (!(flags & kPasteboardClientIsOwner))
-    rb_raise(ePBError, "pasteboard not owned");
-
-  return self;
+  return ULONG2NUM(flags);
 }
 
 /*
@@ -324,14 +370,18 @@ Init_pasteboard(void) {
   VALUE cPB = rb_define_class("Pasteboard", rb_cObject);
   ePBError = rb_define_class_under(cPB, "Error", rb_eRuntimeError);
 
+  rb_define_const(cPB, "MODIFIED",        ULONG2NUM(kPasteboardModified));
+  rb_define_const(cPB, "CLIENT_IS_OWNER", ULONG2NUM(kPasteboardClientIsOwner));
+
   rb_define_alloc_func(cPB, pb_alloc);
-  rb_define_method(cPB, "initialize",          pb_init,                -1);
-  rb_define_method(cPB, "clear",               pb_clear,                0);
-  rb_define_method(cPB, "copy_item_flavors",   pb_copy_item_flavors,    1);
-  rb_define_method(cPB, "get_item_count",      pb_get_item_count,       0);
-  rb_define_method(cPB, "get_item_identifier", pb_get_item_identifier,  1);
-  rb_define_method(cPB, "name",                pb_name,                 0);
-  rb_define_method(cPB, "put_item_flavor",     pb_put_item_flavor,      3);
-  rb_define_method(cPB, "sync",                pb_sync,                 0);
+  rb_define_method(cPB, "initialize",            pb_init,                  -1);
+  rb_define_method(cPB, "clear",                 pb_clear,                  0);
+  rb_define_method(cPB, "copy_item_flavors",     pb_copy_item_flavors,      1);
+  rb_define_method(cPB, "copy_item_flavor_data", pb_copy_item_flavor_data,  2);
+  rb_define_method(cPB, "get_item_count",        pb_get_item_count,         0);
+  rb_define_method(cPB, "get_item_identifier",   pb_get_item_identifier,    1);
+  rb_define_method(cPB, "name",                  pb_name,                   0);
+  rb_define_method(cPB, "put_item_flavor",       pb_put_item_flavor,        3);
+  rb_define_method(cPB, "sync",                  pb_sync,                   0);
 }
 
