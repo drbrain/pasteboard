@@ -5,6 +5,23 @@
 
 static VALUE ePBError;
 
+static VALUE
+string_ref_to_value(CFStringRef ref) {
+  char buffer[BUFSIZE];
+  const char * string = NULL;
+
+  string = CFStringGetCStringPtr(ref, kCFStringEncodingUTF8);
+
+  if (string == NULL)
+    if (CFStringGetCString(ref, buffer, BUFSIZE, kCFStringEncodingUTF8))
+      string = buffer;
+
+  if (string == NULL) /* HACK buffer was too small */
+      return Qnil;
+
+  return rb_str_new2(string);
+}
+
 static void pb_free(void *ptr) {
   if (ptr)
     CFRelease((PasteboardRef)ptr);
@@ -122,6 +139,45 @@ pb_clear(VALUE self) {
 
 /*
  * call-seq:
+ *   pasteboard.copy_item_flavors identifier
+ *
+ * Returns an Array of flavors for the pasteboard item at +identifier+.
+ */
+static VALUE
+pb_copy_item_flavors(VALUE self, VALUE identifier) {
+  OSStatus err = noErr;
+  PasteboardRef pasteboard;
+  PasteboardItemID item_id;
+  CFArrayRef flavor_types = NULL;
+  CFIndex i, flavor_count = 0;
+  VALUE flavors = Qnil;
+
+  item_id = (PasteboardItemID)NUM2ULONG(identifier);
+
+  pasteboard = pb_get_pasteboard(self);
+
+  err = PasteboardCopyItemFlavors(pasteboard, item_id, &flavor_types);
+
+  pb_error(err);
+
+  flavors = rb_ary_new();
+
+  flavor_count = CFArrayGetCount(flavor_types);
+
+  for (i = 0; i < flavor_count; i++) {
+    CFStringRef flavor_type =
+      (CFStringRef)CFArrayGetValueAtIndex(flavor_types, i);
+
+    rb_ary_push(flavors, string_ref_to_value(flavor_type));
+  }
+
+  CFRelease(flavor_types);
+
+  return flavors;
+}
+
+/*
+ * call-seq:
  *   pasteboard.get_item_count
  *
  * The number of items on the pasteboard
@@ -176,8 +232,7 @@ pb_name(VALUE self) {
   OSStatus err = noErr;
   PasteboardRef pasteboard;
   CFStringRef pasteboard_name = NULL;
-  char buffer[BUFSIZE];
-  const char *name = NULL;
+  VALUE name = Qnil;
 
   pasteboard = pb_get_pasteboard(self);
 
@@ -185,17 +240,12 @@ pb_name(VALUE self) {
 
   pb_error(err);
 
-  name = CFStringGetCStringPtr(pasteboard_name, kCFStringEncodingUTF8);
+  name = string_ref_to_value(pasteboard_name);
 
-  if (name == NULL)
-    if (CFStringGetCString(pasteboard_name, buffer, BUFSIZE,
-          kCFStringEncodingUTF8))
-      name = buffer;
+  if (pasteboard_name)
+    CFRelease(pasteboard_name);
 
-  if (name == NULL) /* HACK buffer was too small */
-      return Qnil;
-
-  return rb_str_new2(name);
+  return name;
 }
 
 /*
@@ -277,6 +327,7 @@ Init_pasteboard(void) {
   rb_define_alloc_func(cPB, pb_alloc);
   rb_define_method(cPB, "initialize",          pb_init,                -1);
   rb_define_method(cPB, "clear",               pb_clear,                0);
+  rb_define_method(cPB, "copy_item_flavors",   pb_copy_item_flavors,    1);
   rb_define_method(cPB, "get_item_count",      pb_get_item_count,       0);
   rb_define_method(cPB, "get_item_identifier", pb_get_item_identifier,  1);
   rb_define_method(cPB, "name",                pb_name,                 0);
