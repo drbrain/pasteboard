@@ -32,6 +32,9 @@ class Pasteboard
   # Synchronizes the pasteboard and returns the item at +index+ in the
   # pasteboard.
   #
+  # If +flavor+ is given only the given flavor's data is returned.  If no
+  # flavor matches nil is returned.
+  #
   # An item is an Array of pairs in the order of preference which looks like
   # this: 
   #
@@ -44,41 +47,53 @@ class Pasteboard
   #      "P\000a\000s\000t\000e\000b\000o\000a\000r\000d\000"],
   #   ]
 
-  def [] index
+  def [] index, flavor = nil
     flags = sync
 
     raise Error, 'pasteboard sync error' if (flags & MODIFIED) != 0
 
     id = get_item_identifier index + 1
 
-    get id
+    get id, flavor
   end
 
   ##
   # Synchronizes the pasteboard and yields each item in the pasteboard.
   #
+  # If +flavor+ is given only the given flavor's data is yielded.  If no
+  # flavor matches nil is yielded.
+  #
   # See #[] for a description of an item.
 
-  def each # :yields: item
+  def each flavor = nil # :yields: item
     flags = sync
 
     raise Error, 'pasteboard sync error' if (flags & MODIFIED) != 0
 
     ids.each do |id|
-      yield get id
+      yield get(id, flavor)
     end
 
     self
   end
 
   ##
-  # Returns the item with +id+ in the pasteboard.  See #[] for a description
-  # of an item.
+  # Returns the item with +id+ in the pasteboard.
+  #
+  # If +flavor+ is given only the given flavor's data is returned.  If no
+  # flavor matches nil is returned.
+  #
+  # See #[] for a description of an item.
 
-  def get id
-    copy_item_flavors(id).map do |flavor|
-      [flavor, copy_item_flavor_data(id, flavor)]
+  def get id, flavor = nil
+    item = copy_item_flavors(id).map do |item_flavor|
+      return copy_item_flavor_data(id, item_flavor) if
+        flavor and item_flavor == flavor
+
+      [item_flavor, copy_item_flavor_data(id, item_flavor)]
     end
+
+    return nil if item.empty?
   end
 
   def inspect # :nodoc:
