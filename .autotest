@@ -6,3 +6,9 @@ Autotest.add_hook :initialize do |at|
   at.testlib = 'minitest/autorun'
 end
 
+Autotest.add_hook :run_command do |at|
+  at.unit_diff = 'cat'
+
+  system Gem.bin_path('rake', 'rake'), 'compile'
+end
+
