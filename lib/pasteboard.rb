@@ -67,7 +67,10 @@ class Pasteboard
   # See #[] for a description of an item.
 
   def each flavor = nil # :yields: item
-    return Enumerator.new(self, :each, flavor) unless block_given?
+    unless block_given? then
+      enum = defined?(Enumerator) ? Enumerator : Enumerable::Enumerator # 1.8.7
+      return enum.new(self, :each, flavor)
+    end
 
     flags = sync
 
