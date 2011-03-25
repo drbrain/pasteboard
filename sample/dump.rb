@@ -9,7 +9,7 @@ pb.each.with_index do |item, index|
     puts "flavor: #{flavor}"
     puts "encoding: #{data.encoding} valid: #{data.valid_encoding?}" if
       defined?(Encoding)
-    puts data.inspect[0, 75]
+    puts "data: #{data.inspect[0, 70]}"
     puts
   end
   puts
