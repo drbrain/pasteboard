@@ -7,6 +7,7 @@ class TestPasteboard < MiniTest::Unit::TestCase
 
   def setup
     @pb = Pasteboard.new nil
+    @encoding = defined?(Encoding)
   end
 
   def test_initialize
@@ -43,7 +44,8 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal [Pasteboard::Type::PLAIN_TEXT, Pasteboard::Type::UTF_8],
       flavors[0, 2]
 
-    assert flavors.all? { |flavor| flavor.encoding == Encoding::UTF_8 }
+    assert flavors.all? { |flavor| flavor.encoding == Encoding::UTF_8 } if
+      @encoding
   end
 
   def test_copy_item_flavor_data
@@ -52,12 +54,12 @@ class TestPasteboard < MiniTest::Unit::TestCase
     data = @pb.copy_item_flavor_data 0, Pasteboard::Type::PLAIN_TEXT
 
     assert_equal 'pi', data
-    assert_equal Encoding::BINARY, data.encoding
+    assert_equal Encoding::BINARY, data.encoding if @encoding
 
     data = @pb.copy_item_flavor_data 0, Pasteboard::Type::UTF_8
 
     assert_equal 'π', data
-    assert_equal Encoding::UTF_8, data.encoding
+    assert_equal Encoding::UTF_8, data.encoding if @encoding
   end
 
   def test_get_item_count
@@ -91,7 +93,7 @@ class TestPasteboard < MiniTest::Unit::TestCase
 
     data = @pb.copy_item_flavor_data 5, 'flavor'
     assert_equal 'data', data
-    assert_equal Encoding::BINARY, data.encoding
+    assert_equal Encoding::BINARY, data.encoding if @encoding
   end
 
   def test_sync

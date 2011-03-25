@@ -447,10 +447,11 @@ Init_pasteboard(void) {
   cPB = rb_define_class("Pasteboard", rb_cObject);
 
   cPBType          = rb_const_get_at(cPB,     rb_intern("Type"));
-  cPBTypeEncodings = rb_const_get_at(cPBType, rb_intern("Encodings"));
   ePBError         = rb_const_get_at(cPB,     rb_intern("Error"));
 
 #if HAVE_RB_STR_ENCODE
+  cPBTypeEncodings = rb_const_get_at(cPBType, rb_intern("Encodings"));
+
   utf8_encoding    = rb_enc_from_encoding(rb_utf8_encoding());
   binary_encoding  = rb_const_get_at(rb_cEncoding, rb_intern("BINARY"));
   utf16be_encoding = rb_const_get_at(rb_cEncoding, rb_intern("UTF_16BE"));
