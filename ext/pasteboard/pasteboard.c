@@ -2,18 +2,29 @@
 #include <Pasteboard.h>
 #include "extconf.h"
 
-#if HAVE_RB_STR_ENCODE
-#include <ruby/encoding.h>
-#endif
-
 #define BUFSIZE 128
 
 static VALUE cPB;
 static VALUE cPBType;
 static VALUE cPBTypeEncodings;
 static VALUE ePBError;
+
+#if HAVE_RB_STR_ENCODE
+#include <ruby/encoding.h>
+
+static VALUE BE_BOM;
+static VALUE LE_BOM;
+
+static VALUE binary_encoding;
 static VALUE usascii_encoding;
 static VALUE utf8_encoding;
+static VALUE utf16be_encoding;
+static VALUE utf16le_encoding;
+static VALUE native_encoding;
+
+static VALUE utf16_external_flavor;
+static VALUE utf16_internal_flavor;
+#endif
 
 static VALUE
 string_ref_to_value(CFStringRef ref) {
@@ -49,6 +60,24 @@ value_to_utf8_cstr(VALUE string) {
 
   return StringValueCStr(string);
 }
+
+#if HAVE_RB_STR_ENCODE
+static void
+handle_bom(VALUE data, VALUE default_encoding) {
+  VALUE bom;
+
+  rb_enc_associate(data, rb_to_encoding(binary_encoding));
+  bom = rb_str_substr(data, 0, 2);
+
+  if (rb_str_equal(bom, BE_BOM)) {
+    rb_enc_associate(data, rb_to_encoding(utf16be_encoding));
+  } else if (rb_str_equal(bom, LE_BOM)) {
+    rb_enc_associate(data, rb_to_encoding(utf16le_encoding));
+  } else {
+    rb_enc_associate(data, rb_to_encoding(default_encoding));
+  }
+}
+#endif
 
 static void pb_free(void *ptr) {
   if (ptr)
@@ -258,7 +287,12 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
 #if HAVE_RB_STR_ENCODE
   encoding = rb_hash_aref(cPBTypeEncodings, flavor);
 
-  rb_enc_associate(data, rb_to_encoding(encoding));
+  if (rb_str_equal(flavor, utf16_external_flavor) ||
+      rb_str_equal(flavor, utf16_internal_flavor)) {
+    handle_bom(data, encoding);
+  } else {
+    rb_enc_associate(data, rb_to_encoding(encoding));
+  }
 #endif
 
   return data;
@@ -411,10 +445,20 @@ Init_pasteboard(void) {
 
 #if HAVE_RB_STR_ENCODE
   utf8_encoding    = rb_enc_from_encoding(rb_utf8_encoding());
+  binary_encoding  = rb_const_get_at(rb_cEncoding, rb_intern("BINARY"));
+  utf16be_encoding = rb_const_get_at(rb_cEncoding, rb_intern("UTF_16BE"));
+  utf16le_encoding = rb_const_get_at(rb_cEncoding, rb_intern("UTF_16LE"));
+  native_encoding  = rb_const_get_at(cPB, rb_intern("NATIVE_ENCODING"));
   usascii_encoding = rb_enc_from_encoding(rb_usascii_encoding());
-#else
-  utf8_encoding    = Qnil;
-  usascii_encoding = Qnil;
+
+  utf16_external_flavor = rb_const_get_at(cPBType,
+      rb_intern("PLAIN_TEXT_UTF16_EXTERNAL"));
+
+  utf16_internal_flavor = rb_const_get_at(cPBType,
+      rb_intern("PLAIN_TEXT_UTF16"));
+
+  BE_BOM = rb_const_get_at(cPB, rb_intern("BE_BOM"));
+  LE_BOM = rb_const_get_at(cPB, rb_intern("LE_BOM"));
 #endif
 
   rb_define_const(cPB, "MODIFIED",        ULONG2NUM(kPasteboardModified));

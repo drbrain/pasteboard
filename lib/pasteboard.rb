@@ -18,6 +18,19 @@ class Pasteboard
 
   VERSION = '1.0'
 
+  if defined? Encoding then
+    BE_BOM = "\xFE\xFF" # :nodoc:
+    LE_BOM = "\xFF\xFE" # :nodoc:
+
+    BE_BOM.force_encoding Encoding::BINARY
+    LE_BOM.force_encoding Encoding::BINARY
+
+    little = [1].pack('S') == "\001\000" ? true : false
+
+    NATIVE_BOM      = little ? LE_BOM             : BE_BOM
+    NATIVE_ENCODING = little ? Encoding::UTF_16LE : Encoding::UTF_16BE
+  end
+
   ##
   # General clipboard pasteboard type.  Cut, copy and paste use this
   # pasteboard.

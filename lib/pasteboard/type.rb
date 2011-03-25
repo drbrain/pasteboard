@@ -91,7 +91,7 @@ module Pasteboard::Type
   # Unicode-16, native byte order, with an optional byte-order mark (BOM).
 
   PLAIN_TEXT_UTF16 = 'public.utf16-plain-text'
-  Encodings[PLAIN_TEXT_UTF16] = Encoding::UTF_16LE if encoding
+  Encodings[PLAIN_TEXT_UTF16] = Pasteboard::NATIVE_ENCODING if encoding
 
   # Classic Mac OS text.
 
