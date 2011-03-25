@@ -1,4 +1,3 @@
-require 'pasteboard/pasteboard'
 require 'enumerator'
 
 ##
@@ -7,6 +6,12 @@ require 'enumerator'
 # general clipboard.
 
 class Pasteboard
+
+  ##
+  # Pasteboard error class
+
+  class Error < RuntimeError
+  end
 
   ##
   # Version of pasteboard
@@ -148,7 +153,8 @@ class Pasteboard
     end
   end
 
-  autoload :Type, 'pasteboard/type'
-
 end
+
+require 'pasteboard/type'
+require 'pasteboard/pasteboard'
 

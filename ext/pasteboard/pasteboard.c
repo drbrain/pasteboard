@@ -9,6 +9,8 @@
 #define BUFSIZE 128
 
 static VALUE cPB;
+static VALUE cPBType;
+static VALUE cPBTypeEncodings;
 static VALUE ePBError;
 static VALUE usascii_encoding;
 static VALUE utf8_encoding;
@@ -254,10 +256,7 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
   free(buffer);
 
 #if HAVE_RB_STR_ENCODE
-  encodings = rb_const_get_at(
-      rb_const_get_at(cPB, rb_intern("Type")), rb_intern("Encodings"));
-
-  encoding = rb_hash_aref(encodings, flavor);
+  encoding = rb_hash_aref(cPBTypeEncodings, flavor);
 
   rb_enc_associate(data, rb_to_encoding(encoding));
 #endif
@@ -405,7 +404,10 @@ pb_put_item_flavor(VALUE self, VALUE id, VALUE flavor, VALUE data) {
 void
 Init_pasteboard(void) {
   cPB = rb_define_class("Pasteboard", rb_cObject);
-  ePBError = rb_define_class_under(cPB, "Error", rb_eRuntimeError);
+
+  cPBType          = rb_const_get_at(cPB,     rb_intern("Type"));
+  cPBTypeEncodings = rb_const_get_at(cPBType, rb_intern("Encodings"));
+  ePBError         = rb_const_get_at(cPB,     rb_intern("Error"));
 
 #if HAVE_RB_STR_ENCODE
   utf8_encoding    = rb_enc_from_encoding(rb_utf8_encoding());
