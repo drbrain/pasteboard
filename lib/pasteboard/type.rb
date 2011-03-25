@@ -79,7 +79,7 @@ module Pasteboard::Type
   # Unicode-8
 
   PLAIN_TEXT_UTF8 = 'public.utf8-plain-text'
-  UTF8 = PLAIN_TEXT_UTF8
+  UTF_8 = PLAIN_TEXT_UTF8
   Encodings[PLAIN_TEXT_UTF8] = Encoding::UTF_8 if encoding
 
   # Unicode-16 with byte-order mark (BOM), or if BOM is not present, an

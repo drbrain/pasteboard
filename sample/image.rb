@@ -102,7 +102,7 @@ item = [
   [Pasteboard::Type::TIFF,     troll_tiff],
   [Pasteboard::Type::URL,      troll_url],
   [Pasteboard::Type::URL_NAME, 'trollface'],
-  [Pasteboard::Type::UTF8,     troll_url],
+  [Pasteboard::Type::UTF_8,    troll_url],
 ]
 
 pb.put item
