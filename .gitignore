@@ -1,7 +1,8 @@
 *.rbc
 *.swp
+.DS_Store
 /TAGS
 /doc
+/lib/pasteboard/pasteboard.bundle
 /pkg
 /tmp
-/lib/pasteboard/pasteboard.bundle
