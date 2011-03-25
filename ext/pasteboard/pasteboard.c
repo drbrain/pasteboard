@@ -1,7 +1,10 @@
 #include <ruby.h>
-#include <ruby/encoding.h>
 #include <Pasteboard.h>
 #include "extconf.h"
+
+#if HAVE_RB_STR_ENCODE
+#include <ruby/encoding.h>
+#endif
 
 #define BUFSIZE 128
 
@@ -29,20 +32,20 @@ string_ref_to_value(CFStringRef ref) {
 
 static char *
 value_to_usascii_cstr(VALUE string) {
-  VALUE ascii;
+#if HAVE_RB_STR_ENCODE
+  string = rb_str_encode(string, usascii_encoding, 0, Qnil);
+#endif
 
-  ascii = rb_str_encode(string, usascii_encoding, 0, Qnil);
-
-  return StringValueCStr(ascii);
+  return StringValueCStr(string);
 }
 
 static char *
 value_to_utf8_cstr(VALUE string) {
-  VALUE ascii;
+#if HAVE_RB_STR_ENCODE
+  string = rb_str_encode(string, utf8_encoding, 0, Qnil);
+#endif
 
-  ascii = rb_str_encode(string, utf8_encoding, 0, Qnil);
-
-  return StringValueCStr(ascii);
+  return StringValueCStr(string);
 }
 
 static void pb_free(void *ptr) {
@@ -250,12 +253,14 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
 
   free(buffer);
 
+#if HAVE_RB_STR_ENCODE
   encodings = rb_const_get_at(
       rb_const_get_at(cPB, rb_intern("Type")), rb_intern("Encodings"));
 
   encoding = rb_hash_aref(encodings, flavor);
 
   rb_enc_associate(data, rb_to_encoding(encoding));
+#endif
 
   return data;
 }
@@ -402,8 +407,13 @@ Init_pasteboard(void) {
   cPB = rb_define_class("Pasteboard", rb_cObject);
   ePBError = rb_define_class_under(cPB, "Error", rb_eRuntimeError);
 
+#if HAVE_RB_STR_ENCODE
   utf8_encoding    = rb_enc_from_encoding(rb_utf8_encoding());
   usascii_encoding = rb_enc_from_encoding(rb_usascii_encoding());
+#else
+  utf8_encoding    = Qnil;
+  usascii_encoding = Qnil;
+#endif
 
   rb_define_const(cPB, "MODIFIED",        ULONG2NUM(kPasteboardModified));
   rb_define_const(cPB, "CLIENT_IS_OWNER", ULONG2NUM(kPasteboardClientIsOwner));
