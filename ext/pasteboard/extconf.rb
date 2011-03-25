@@ -7,5 +7,8 @@ $LDFLAGS  << " -framework ApplicationServices"
 
 abort unless have_header 'Pasteboard.h'
 
+have_func 'rb_str_encode'
+
 create_makefile 'pasteboard/pasteboard'
+create_header
 

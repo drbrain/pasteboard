@@ -1,9 +1,14 @@
 #include <ruby.h>
+#include <ruby/encoding.h>
 #include <Pasteboard.h>
+#include "extconf.h"
 
 #define BUFSIZE 128
 
+static VALUE cPB;
 static VALUE ePBError;
+static VALUE usascii_encoding;
+static VALUE utf8_encoding;
 
 static VALUE
 string_ref_to_value(CFStringRef ref) {
@@ -22,6 +27,24 @@ string_ref_to_value(CFStringRef ref) {
   return rb_str_new2(string);
 }
 
+static char *
+value_to_usascii_cstr(VALUE string) {
+  VALUE ascii;
+
+  ascii = rb_str_encode(string, usascii_encoding, 0, Qnil);
+
+  return StringValueCStr(ascii);
+}
+
+static char *
+value_to_utf8_cstr(VALUE string) {
+  VALUE ascii;
+
+  ascii = rb_str_encode(string, utf8_encoding, 0, Qnil);
+
+  return StringValueCStr(ascii);
+}
+
 static void pb_free(void *ptr) {
   if (ptr)
     CFRelease((PasteboardRef)ptr);
@@ -38,7 +61,7 @@ pb_alloc(VALUE klass) {
 
 static void
 pb_error(OSStatus err) {
-  char * message = NULL;
+  const char * message = NULL;
   switch (err) {
     case noErr:
       return;
@@ -98,7 +121,7 @@ pb_init(int argc, VALUE* argv, VALUE self) {
 
   if (!NIL_P(type)) {
     pasteboard_type = CFStringCreateWithCString(NULL,
-        StringValueCStr(type),
+        value_to_utf8_cstr(type),
         kCFStringEncodingUTF8);
 
     if (pasteboard_type == NULL)
@@ -192,14 +215,16 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
   CFStringRef flavor_type = NULL;
   UInt8 *buffer = NULL;
   VALUE data = Qnil;
+  VALUE encoding = Qnil;
+  VALUE encodings = Qnil;
 
   pasteboard = pb_get_pasteboard(self);
 
   id = (PasteboardItemID)NUM2ULONG(identifier);
 
   flavor_type = CFStringCreateWithCString(NULL,
-      StringValueCStr(flavor),
-      kCFStringEncodingUTF8);
+      value_to_usascii_cstr(flavor),
+      kCFStringEncodingASCII);
 
   if (flavor_type == NULL)
     rb_raise(ePBError, "unable to allocate memory for flavor type");
@@ -222,6 +247,13 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
   CFRelease(flavor_data);
 
   data = rb_str_new(buffer, data_length);
+
+  encodings = rb_const_get_at(
+      rb_const_get_at(cPB, rb_intern("Type")), rb_intern("Encodings"));
+
+  encoding = rb_hash_aref(encodings, flavor);
+
+  rb_enc_associate(data, rb_to_encoding(encoding));
 
   free(buffer);
 
@@ -337,8 +369,8 @@ pb_put_item_flavor(VALUE self, VALUE id, VALUE flavor, VALUE data) {
   pasteboard = pb_get_pasteboard(self);
 
   item_flavor = CFStringCreateWithCString(NULL,
-      StringValueCStr(flavor),
-      kCFStringEncodingUTF8);
+      value_to_usascii_cstr(flavor),
+      kCFStringEncodingASCII);
 
   if (item_flavor == NULL)
     rb_raise(ePBError, "unable to allocate memory for item flavor");
@@ -367,8 +399,11 @@ pb_put_item_flavor(VALUE self, VALUE id, VALUE flavor, VALUE data) {
 
 void
 Init_pasteboard(void) {
-  VALUE cPB = rb_define_class("Pasteboard", rb_cObject);
+  cPB = rb_define_class("Pasteboard", rb_cObject);
   ePBError = rb_define_class_under(cPB, "Error", rb_eRuntimeError);
+
+  utf8_encoding    = rb_enc_from_encoding(rb_utf8_encoding());
+  usascii_encoding = rb_enc_from_encoding(rb_usascii_encoding());
 
   rb_define_const(cPB, "MODIFIED",        ULONG2NUM(kPasteboardModified));
   rb_define_const(cPB, "CLIENT_IS_OWNER", ULONG2NUM(kPasteboardClientIsOwner));

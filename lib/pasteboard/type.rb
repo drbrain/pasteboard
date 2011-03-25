@@ -6,6 +6,13 @@
 
 module Pasteboard::Type
 
+  ##
+  # Maps a type to its encoding.  The default encoding is Encoding::BINARY.
+
+  Encodings = {}
+
+  Encodings.default = Encoding::BINARY
+
   # :section: System-defined uniform type identifiers
 
   # Base type for the physical hierarchy.
@@ -63,24 +70,29 @@ module Pasteboard::Type
   # text/plain
 
   PLAIN_TEXT = 'public.plain-text'
+  Encodings[TEXT] = Encoding::US_ASCII
 
   # Unicode-8
 
   PLAIN_TEXT_UTF8 = 'public.utf8-plain-text'
   UTF8 = PLAIN_TEXT_UTF8
+  Encodings[PLAIN_TEXT_UTF8] = Encoding::UTF_8
 
   # Unicode-16 with byte-order mark (BOM), or if BOM is not present, an
   # external representation byte order (big-endian).
 
   PLAIN_TEXT_UTF16_EXTERNAL = 'public.utf16-external-plain-text'
+  Encodings[PLAIN_TEXT_UTF16_EXTERNAL] = Encoding::UTF_16BE
 
   # Unicode-16, native byte order, with an optional byte-order mark (BOM).
 
   PLAIN_TEXT_UTF16 = 'public.utf16-plain-text'
+  Encodings[PLAIN_TEXT_UTF16] = Encoding::UTF_16LE
 
   # Classic Mac OS text.
 
   PLAIN_TEXT_TRADITIONAL = 'com.apple.traditional-mac-plain-text'
+  Encodings[PLAIN_TEXT_TRADITIONAL] = Encoding::MacRoman
 
   # Rich Text.
 
@@ -252,14 +264,17 @@ module Pasteboard::Type
   # Uniform Resource Locator.
 
   URL = 'public.url'
+  Encodings[URL] = Encoding::US_ASCII
 
   # File URL.
 
   FILE_URL = 'public.file-url'
+  Encodings[FILE_URL] = Encoding::US_ASCII
 
   # URL name.
 
   URL_NAME = 'public.url-name'
+  Encodings[URL_NAME] = Encoding::UTF_8
 
   # vCard (electronic business card).
 
