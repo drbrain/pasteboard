@@ -1,4 +1,5 @@
 require 'pasteboard/pasteboard'
+require 'enumerator'
 
 ##
 # Pasteboard wraps the OS X pasteboard (clipboard) allowing you to paste
@@ -66,6 +67,8 @@ class Pasteboard
   # See #[] for a description of an item.
 
   def each flavor = nil # :yields: item
+    return Enumerator.new(self, :each, flavor) unless block_given?
+
     flags = sync
 
     raise Error, 'pasteboard sync error' if (flags & MODIFIED) != 0
@@ -94,6 +97,8 @@ class Pasteboard
     end
 
     return nil if item.empty?
+
+    item
   end
 
   def inspect # :nodoc:
