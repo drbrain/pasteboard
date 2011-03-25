@@ -248,14 +248,14 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
 
   data = rb_str_new(buffer, data_length);
 
+  free(buffer);
+
   encodings = rb_const_get_at(
       rb_const_get_at(cPB, rb_intern("Type")), rb_intern("Encodings"));
 
   encoding = rb_hash_aref(encodings, flavor);
 
   rb_enc_associate(data, rb_to_encoding(encoding));
-
-  free(buffer);
 
   return data;
 }
