@@ -28,19 +28,26 @@ static VALUE utf16_internal_flavor;
 
 static VALUE
 string_ref_to_value(CFStringRef ref) {
+  VALUE string = Qnil;
   char buffer[BUFSIZE];
-  const char * string = NULL;
+  const char * str = NULL;
 
-  string = CFStringGetCStringPtr(ref, kCFStringEncodingUTF8);
+  str = CFStringGetCStringPtr(ref, kCFStringEncodingUTF8);
 
-  if (string == NULL)
+  if (str == NULL)
     if (CFStringGetCString(ref, buffer, BUFSIZE, kCFStringEncodingUTF8))
-      string = buffer;
+      str = buffer;
 
-  if (string == NULL) /* HACK buffer was too small */
+  if (str == NULL) /* HACK buffer was too small */
       return Qnil;
 
-  return rb_str_new2(string);
+  string = rb_str_new2(str);
+
+#if HAVE_RB_STR_ENCODE
+  rb_enc_associate(string, rb_to_encoding(utf8_encoding));
+#endif
+
+  return string;
 }
 
 static char *
