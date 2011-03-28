@@ -103,7 +103,7 @@ class Pasteboard
     id = get_item_identifier index + 1
 
     get id, flavor
-  rescue Missing => e
+  rescue Missing
     return nil
   end
 
