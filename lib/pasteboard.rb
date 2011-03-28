@@ -91,6 +91,9 @@ class Pasteboard
     id = get_item_identifier index + 1
 
     get id, flavor
+  rescue => e
+    return nil if e.message.end_with? 'does not exist' # HACK
+    raise
   end
 
   ##
@@ -185,15 +188,17 @@ class Pasteboard
   # The pasteboard considers items added earlier in the list to have a higher
   # preference.
 
-  def put item, id = 0
+  def put *items
     clear
     flags = sync
 
     raise Error, 'pasteboard sync error' if (flags & MODIFIED)        != 0
     raise Error, 'pasteboard not owned'  if (flags & CLIENT_IS_OWNER) == 0
 
-    item.each do |flavor, data|
-      put_item_flavor id, flavor, data
+    items.each_with_index do |item, id|
+      item.each do |flavor, data|
+        put_item_flavor id, flavor, data
+      end
     end
 
     self

@@ -120,6 +120,34 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal [0], @pb.ids
   end
 
+  def test_index
+    util_put
+
+    item = @pb[0]
+
+    assert_equal @item, item[0, 2]
+
+    assert_nil @pb[1]
+  end
+
+  def test_index_flavor
+    util_put
+
+    item = @pb[0, Pasteboard::Type::UTF_8]
+
+    assert_equal 'π', item
+
+    assert_nil @pb[1, Pasteboard::Type::UTF_8]
+  end
+
+  def test_index_multi
+    util_put_many
+
+    assert_equal @item1, @pb[0][0, 2]
+
+    assert_equal @item2, @pb[1][0, 2]
+  end
+
   def test_inspect
     expected = '#<%s:0x%x %s>' % [Pasteboard, @pb.object_id, @pb.name]
 
@@ -163,6 +191,20 @@ class TestPasteboard < MiniTest::Unit::TestCase
     ]
 
     @pb.put @item
+  end
+
+  def util_put_many
+    @item1 = [
+      [Pasteboard::Type::PLAIN_TEXT, 'pi'],
+      [Pasteboard::Type::UTF_8,      'π'],
+    ]
+
+    @item2 = [
+      [Pasteboard::Type::PLAIN_TEXT, '0°'],
+      [Pasteboard::Type::UTF_8,      '0 degrees'],
+    ]
+
+    @pb.put @item1, @item2
   end
 
 end
