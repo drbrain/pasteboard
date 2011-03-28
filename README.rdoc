@@ -6,8 +6,8 @@
 == DESCRIPTION:
 
 Pasteboard wraps the OS X system pasteboard.  Pasteboard allows you to add
-multiple item flavors to the pasteboard unlike +pbpaste+ which only allows
-text.
+and retrieve multiple items and multiple item flavors to the pasteboard unlike
++pbpaste+ and +pbcopy+ which only allow text.
 
 == FEATURES/PROBLEMS:
 
