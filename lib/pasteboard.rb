@@ -4,6 +4,23 @@ require 'enumerator'
 # Pasteboard wraps the OS X pasteboard (clipboard) allowing you to paste
 # multiple flavors of a pasteboard item.  Currently it only supports the
 # general clipboard.
+#
+# To add data to the clipboard:
+#
+#   item = [
+#     Pasteboard::Type::UTF_8,      'π'],
+#     Pasteboard::Type::PLAIN_TEXT, 'pi'],
+#   ]
+#
+#   pasteboard.put item
+#
+# To retrieve data from the clipboard:
+#
+#   data = pasteboard.first Pasteboard::Type::UTF_8
+#
+# If the item cannot be found nil will be returned.
+#
+# See #put, #first and #[] for more details
 
 class Pasteboard
 

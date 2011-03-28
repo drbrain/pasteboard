@@ -11,23 +11,40 @@ text.
 
 == FEATURES/PROBLEMS:
 
-* Only supports the general clipboard
-* Does not support flavor lookup
+* Supports multiple pasteboards
+* Returns data with the proper encoding
+* Built in library of types in Pasteboard::Type
+* Does not understand type conformance (Pasteboard::Type::IMAGE will not
+  retrieve a Pasteboard::Type::JPEG)
 
 == SYNOPSIS:
+
+Adding data to the clipboard:
 
   require 'pasteboard'
 
   pasteboard = Pasteboard.new
 
   item = [
-    ['public.tiff',            tiff],
-    ['public.url',             url],
-    ['public.url-name',        url],
-    ['public.utf8-plain-text', url]
+    [Pasteboard::Type::TIFF,     tiff],
+    [Pasteboard::Type::URL,      url],
+    [Pasteboard::Type::URL_NAME, url],
+    [Pasteboard::Type::UTF_8,    url],
   ]
   
   pasteboard.put item
+
+Retrieving data from the clipboard:
+
+  require 'pasteboard'
+
+  pb = Pasteboard.new
+
+  pb.first # => all flavors, see Pasteboard#[]
+
+  pb.first Pasteboard::Type::TIFF # => TIFF data
+
+See also sample/image.rb and sample/dump.rb
 
 == REQUIREMENTS:
 
