@@ -8,6 +8,7 @@ static VALUE cPB;
 static VALUE cPBType;
 static VALUE cPBTypeEncodings;
 static VALUE ePBError;
+static VALUE ePBMissing;
 
 #if HAVE_RB_STR_ENCODE
 #include <ruby/encoding.h>
@@ -109,7 +110,7 @@ pb_error(OSStatus err) {
       rb_raise(ePBError,
           "pasteboard has been modified and must be synchronized before use");
     case badPasteboardIndexErr:
-      rb_raise(ePBError, "pasteboard item does not exist");
+      rb_raise(ePBMissing, "item does not exist");
     case badPasteboardItemErr:
       rb_raise(ePBError, "item reference does not exist");
     case badPasteboardFlavorErr:
@@ -436,8 +437,9 @@ void
 Init_pasteboard(void) {
   cPB = rb_define_class("Pasteboard", rb_cObject);
 
-  cPBType          = rb_const_get_at(cPB,     rb_intern("Type"));
-  ePBError         = rb_const_get_at(cPB,     rb_intern("Error"));
+  cPBType    = rb_const_get_at(cPB, rb_intern("Type"));
+  ePBError   = rb_const_get_at(cPB, rb_intern("Error"));
+  ePBMissing = rb_const_get_at(cPB, rb_intern("Missing"));
 
 #if HAVE_RB_STR_ENCODE
   cPBTypeEncodings = rb_const_get_at(cPBType, rb_intern("Encodings"));

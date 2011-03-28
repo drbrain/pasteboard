@@ -31,6 +31,12 @@ class Pasteboard
   end
 
   ##
+  # Missing is raised when attempting to access an item that does not exist
+
+  class Missing < Error
+  end
+
+  ##
   # Version of pasteboard
 
   VERSION = '1.0'
@@ -91,9 +97,8 @@ class Pasteboard
     id = get_item_identifier index + 1
 
     get id, flavor
-  rescue => e
-    return nil if e.message.end_with? 'does not exist' # HACK
-    raise
+  rescue Missing => e
+    return nil
   end
 
   ##
