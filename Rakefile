@@ -21,6 +21,7 @@ Hoe.spec 'pasteboard' do
 
   self.spec_extras[:extensions] = %w[ext/pasteboard/extconf.rb]
   self.readme_file = 'README.rdoc'
+  self.extra_rdoc_files = %w[ext/pasteboard/pasteboard.c]
 end
 
 # vim: syntax=ruby
