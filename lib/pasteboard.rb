@@ -205,6 +205,34 @@ class Pasteboard
     self
   end
 
+  ##
+  # Adds +url+ to the pasteboard with an optional +url_name+.
+
+  def put_url url, url_name = url
+    item = [
+      [Pasteboard::Type::URL,      url],
+      [Pasteboard::Type::URL_NAME, url_name],
+      [Pasteboard::Type::UTF_8,    url],
+    ]
+
+    put item
+  end
+
+  ##
+  # Adds JPEG data +image+ to the pasteboard with a +url+ and optional
+  # +url_name+.
+
+  def put_jpeg_url image, url, url_name = url
+    item = [
+      [Pasteboard::Type::JPEG,     image],
+      [Pasteboard::Type::URL,      url],
+      [Pasteboard::Type::URL_NAME, url_name],
+      [Pasteboard::Type::UTF_8,    url],
+    ]
+
+    put item
+  end
+
 end
 
 require 'pasteboard/type'

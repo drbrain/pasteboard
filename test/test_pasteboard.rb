@@ -224,6 +224,27 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal Encoding::BINARY, data.encoding if @encoding
   end
 
+  def test_put_jpeg_url
+    @pb.put_jpeg_url 'JPEG data', 'http://example', 'my cool jpeg'
+
+    assert_put [
+      [Pasteboard::Type::JPEG,     'JPEG data'],
+      [Pasteboard::Type::URL,      'http://example'],
+      [Pasteboard::Type::URL_NAME, 'my cool jpeg'],
+      [Pasteboard::Type::UTF_8,    'http://example'],
+    ]
+  end
+
+  def test_put_url
+    @pb.put_url 'http://example', 'my cool jpeg'
+
+    assert_put [
+      [Pasteboard::Type::URL,      'http://example'],
+      [Pasteboard::Type::URL_NAME, 'my cool jpeg'],
+      [Pasteboard::Type::UTF_8,    'http://example'],
+    ]
+  end
+
   def test_sync
     assert_equal 0, @pb.sync
   end
@@ -249,6 +270,17 @@ class TestPasteboard < MiniTest::Unit::TestCase
     ]
 
     @pb.put @item1, @item2
+  end
+
+  def assert_put *expecteds
+    assert_equal expecteds.length, @pb.get_item_count
+
+    expecteds.each do |expected|
+      expected.each_with_index do |(flavor, data), index|
+        assert_equal flavor, @pb.copy_item_flavors(0)[index]
+        assert_equal data, @pb.first(flavor)
+      end
+    end
   end
 
 end
