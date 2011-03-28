@@ -102,6 +102,18 @@ class Pasteboard
   end
 
   ##
+  # Retrieves the first item in the pasteboard.
+  #
+  # If +flavor+ is given only the given flavor's data is returned.  If no
+  # flavor matches nil is returned.
+  #
+  # See #[] for a description of an item.
+
+  def first flavor = nil
+    self[0, flavor]
+  end
+
+  ##
   # Returns the item with +id+ in the pasteboard.
   #
   # If +flavor+ is given only the given flavor's data is returned.  If no

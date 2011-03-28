@@ -62,6 +62,22 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal Encoding::UTF_8, data.encoding if @encoding
   end
 
+  def test_first
+    util_put
+
+    item = @pb.first
+
+    assert_equal @item, item[0, 2]
+  end
+
+  def test_first_flavor
+    util_put
+
+    item = @pb.first Pasteboard::Type::UTF_8
+
+    assert_equal 'π', item
+  end
+
   def test_get
     util_put
 
