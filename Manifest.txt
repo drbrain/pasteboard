@@ -7,5 +7,6 @@ ext/pasteboard/extconf.rb
 ext/pasteboard/pasteboard.c
 lib/pasteboard.rb
 lib/pasteboard/type.rb
+sample/dump.rb
 sample/image.rb
 test/test_pasteboard.rb
