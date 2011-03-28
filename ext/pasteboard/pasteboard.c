@@ -102,37 +102,29 @@ pb_alloc(VALUE klass) {
 
 static void
 pb_error(OSStatus err) {
-  const char * message = NULL;
   switch (err) {
     case noErr:
       return;
     case badPasteboardSyncErr:
-      message = "pasteboard has been modified and must be synchronized before use";
-      break;
+      rb_raise(ePBError,
+          "pasteboard has been modified and must be synchronized before use");
     case badPasteboardIndexErr:
-      message = "pasteboard item does not exist";
-      break;
+      rb_raise(ePBError, "pasteboard item does not exist");
     case badPasteboardItemErr:
-      message = "item reference does not exist";
-      break;
+      rb_raise(ePBError, "item reference does not exist");
     case badPasteboardFlavorErr:
-      message = "item flavor does not exist";
-      break;
+      rb_raise(ePBError, "item flavor does not exist");
     case duplicatePasteboardFlavorErr:
-      message = "item flavor already exists";
-      break;
+      rb_raise(ePBError, "item flavor already exists");
     case notPasteboardOwnerErr:
-      message = "pasteboard was not cleared before attempting to add flavor data";
-      break;
+      rb_raise(ePBError,
+          "pasteboard was not cleared before attempting to add flavor data");
     case noPasteboardPromiseKeeperErr:
-      message = "promised data was added without registering a promise keeper callback";
-      break;
+      rb_raise(ePBError,
+          "promised data added without registering a promise keeper callback");
     default:
-      message = "unknown";
-      break;
+      rb_raise(ePBError, "unknown");
   }
-
-  rb_raise(ePBError, message);
 }
 
 static PasteboardRef
@@ -257,7 +249,6 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
   UInt8 *buffer = NULL;
   VALUE data = Qnil;
   VALUE encoding = Qnil;
-  VALUE encodings = Qnil;
 
   pasteboard = pb_get_pasteboard(self);
 
@@ -287,7 +278,7 @@ pb_copy_item_flavor_data(VALUE self, VALUE identifier, VALUE flavor) {
 
   CFRelease(flavor_data);
 
-  data = rb_str_new(buffer, data_length);
+  data = rb_str_new((char *)buffer, data_length);
 
   free(buffer);
 
@@ -386,7 +377,6 @@ pb_name(VALUE self) {
  */
 static VALUE
 pb_sync(VALUE self) {
-  OSStatus err = noErr;
   PasteboardSyncFlags flags;
   PasteboardRef pasteboard;
 
