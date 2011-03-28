@@ -19,11 +19,19 @@ and retrieve multiple items and multiple item flavors to the pasteboard unlike
 
 == SYNOPSIS:
 
-Adding data to the clipboard:
-
   require 'pasteboard'
 
   pasteboard = Pasteboard.new
+
+Adding a URL to the clipboard:
+
+  pasteboard.put_url 'http://blog.segment7.net', 'my blog'
+
+Adding a JPEG with URL to the clipboard:
+
+  pasteboard.put_jpeg_url jpeg, 'http://example', 'my cool jpeg'
+
+Adding other data to the clipboard (TIFF + URL):
 
   item = [
     [Pasteboard::Type::TIFF,     tiff],
