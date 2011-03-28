@@ -111,19 +111,17 @@ class Pasteboard
 
   def get id, flavor = nil
     item = copy_item_flavors(id).map do |item_flavor|
-      return copy_item_flavor_data(id, item_flavor) if
-        flavor and item_flavor == flavor
+      if flavor then
+        return copy_item_flavor_data(id, item_flavor) if item_flavor == flavor
+        next
+      end
 
       [item_flavor, copy_item_flavor_data(id, item_flavor)]
     end
 
-    return nil if item.empty?
+    return nil if item.compact.empty?
 
     item
-  end
-
-  def inspect # :nodoc:
-    '#<%s:0x%x %s>' % [self.class, object_id, name]
   end
 
   ##
@@ -134,6 +132,10 @@ class Pasteboard
     (1..get_item_count).map do |index|
       get_item_identifier index
     end
+  end
+
+  def inspect # :nodoc:
+    '#<%s:0x%x %s>' % [self.class, object_id, name]
   end
 
   ##
@@ -164,6 +166,8 @@ class Pasteboard
     item.each do |flavor, data|
       put_item_flavor id, flavor, data
     end
+
+    self
   end
 
 end

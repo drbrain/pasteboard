@@ -62,6 +62,26 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal Encoding::UTF_8, data.encoding if @encoding
   end
 
+  def test_get
+    util_put
+
+    item = @pb.get(0)
+
+    assert_equal @item, item[0, 2]
+  end
+
+  def test_get_flavor
+    util_put
+
+    assert_equal 'pi', @pb.get(0, Pasteboard::Type::PLAIN_TEXT)
+  end
+
+  def test_get_flavor_missing
+    util_put
+
+    assert_nil @pb.get(0, Pasteboard::Type::JPEG)
+  end
+
   def test_get_item_count
     assert_equal 0, @pb.get_item_count
 
@@ -78,8 +98,28 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal 0, id
   end
 
+  def test_ids
+    util_put
+
+    assert_equal [0], @pb.ids
+  end
+
+  def test_inspect
+    expected = '#<%s:0x%x %s>' % [Pasteboard, @pb.object_id, @pb.name]
+
+    assert_equal expected, @pb.inspect
+  end
+
   def test_name
     assert_match %r%CFPasteboardUnique%, @pb.name
+  end
+
+  def test_put
+    util_put
+
+    assert_equal 1, @pb.get_item_count
+    assert_equal [Pasteboard::Type::PLAIN_TEXT, Pasteboard::Type::UTF_8],
+                 @pb.copy_item_flavors(0)[0, 2]
   end
 
   def test_put_item_flavor
@@ -101,10 +141,12 @@ class TestPasteboard < MiniTest::Unit::TestCase
   end
 
   def util_put
-    @pb.put [
+    @item = [
       [Pasteboard::Type::PLAIN_TEXT, 'pi'],
       [Pasteboard::Type::UTF_8,      'π'],
     ]
+
+    @pb.put @item
   end
 
 end
