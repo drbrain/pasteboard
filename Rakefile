@@ -12,7 +12,8 @@ Hoe.plugin :compiler
 Hoe.spec 'pasteboard' do
   developer 'Eric Hodel', 'drbrain@segment7.net'
 
-  rdoc_locations << 'docs.seattlerb.org:/data/www/docs.seattlerb.org/pasteboard/'
+  rdoc_locations <<
+    'docs.seattlerb.org:/data/www/docs.seattlerb.org/pasteboard/'
 
   self.clean_globs = %w[
     lib/pasteboard/pasteboard.bundle
