@@ -171,21 +171,22 @@ class Pasteboard
   end
 
   ##
-  # Clears the pasteboard and adds +item+ to the pasteboard with +id+.
+  # Clears the pasteboard and adds +items+ to the pasteboard.  Each item is
+  # added with a consecutive id starting at 0.
   #
-  # +item+ must be an Enumerable with pairs of item flavors and items.  For
+  # An item must be an Enumerable with pairs of item flavors and items.  For
   # example:
   #
   #   item = [
-  #     ['public.tiff',            tiff],
-  #     ['public.url',             url],
-  #     ['public.url-name',        url],
-  #     ['public.utf8-plain-text', url]
+  #     [Pasteboard::Type::TIFF,     tiff],
+  #     [Pasteboard::Type::URL,      url],
+  #     [Pasteboard::Type::URL_NAME, url],
+  #     [Pasteboard::Type::UTF_8,    url],
   #   ]
   #
   #   pasteboard.put item
   #
-  # The pasteboard considers items added earlier in the list to have a higher
+  # The pasteboard considers flavors added earlier in an item to have a higher
   # preference.
 
   def put *items
