@@ -14,13 +14,19 @@ require 'enumerator'
 #
 #   pasteboard.put item
 #
+# See also #put, #put_url and #put_jpeg_url
+#
 # To retrieve data from the clipboard:
 #
 #   data = pasteboard.first Pasteboard::Type::UTF_8
 #
 # If the item cannot be found nil will be returned.
 #
-# See #put, #first and #[] for more details
+# See also #first, #[] and #each.
+#
+# Pasteboard also provides direct access to the C API through #clear,
+# #copy_item_flavors, #copy_item_flavor_data, #get_item_count,
+# #get_item_identifier, #name, #put_item_flavor and #sync.
 
 class Pasteboard
 
