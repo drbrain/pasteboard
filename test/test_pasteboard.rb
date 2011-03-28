@@ -62,6 +62,50 @@ class TestPasteboard < MiniTest::Unit::TestCase
     assert_equal Encoding::UTF_8, data.encoding if @encoding
   end
 
+  def test_each
+    util_put_many
+
+    items = []
+
+    @pb.each do |item|
+      items << item[0, 2]
+    end
+
+    assert_equal [@item1, @item2], items
+  end
+
+  def test_each_enum
+    enum = @pb.each
+
+    enum_klass = defined?(Enumerator) ? Enumerator : Enumerable::Enumerator
+
+    assert_kind_of enum_klass, enum
+  end
+
+  def test_each_flavor
+    util_put_many
+
+    items = []
+
+    @pb.each Pasteboard::Type::UTF_8 do |item|
+      items << item
+    end
+
+    assert_equal ['π', '0°'], items
+  end
+
+  def test_each_flavor_missing
+    util_put_many
+
+    items = []
+
+    @pb.each Pasteboard::Type::JPEG do |item|
+      items << item
+    end
+
+    assert_equal [nil, nil], items
+  end
+
   def test_first
     util_put
 
@@ -200,8 +244,8 @@ class TestPasteboard < MiniTest::Unit::TestCase
     ]
 
     @item2 = [
-      [Pasteboard::Type::PLAIN_TEXT, '0°'],
-      [Pasteboard::Type::UTF_8,      '0 degrees'],
+      [Pasteboard::Type::UTF_8,      '0°'],
+      [Pasteboard::Type::PLAIN_TEXT, '0 degrees'],
     ]
 
     @pb.put @item1, @item2
