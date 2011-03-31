@@ -1,7 +1,5 @@
 # -*- ruby -*-
 
-task :default => :compile
-
 require 'rubygems'
 require 'hoe'
 
@@ -15,11 +13,6 @@ Hoe.spec 'pasteboard' do
   rdoc_locations <<
     'docs.seattlerb.org:/data/www/docs.seattlerb.org/pasteboard/'
 
-  self.clean_globs = %w[
-    lib/pasteboard/pasteboard.bundle
-  ]
-
-  self.spec_extras[:extensions] = %w[ext/pasteboard/extconf.rb]
   self.readme_file = 'README.rdoc'
   self.extra_rdoc_files = %w[ext/pasteboard/pasteboard.c]
 end
